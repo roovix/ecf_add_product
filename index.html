@@ -194,147 +194,109 @@
          <a href="admin_login.html">Open Admin Login Page</a>
     </div>
 
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-      import {
-        getDatabase,
-        ref as databaseRef,
-        set,
-        push
-      } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
-      import {
-        getAuth,
-        onAuthStateChanged,
-        GoogleAuthProvider,
-      } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
-      import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-storage.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
+  import {
+    getDatabase,
+    ref as databaseRef,
+    set,
+    push
+  } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
+  import {
+    getAuth,
+    onAuthStateChanged,
+    GoogleAuthProvider,
+  } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
 
-      const app = initializeApp(firebaseConfig);
-      const db = getDatabase(app);
-      const auth = getAuth(app);
-      const storage = getStorage(app);
-      const provider = new GoogleAuthProvider();
-      let user_id = "";
-      let isUser = false;
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+  let user_id = "";
+  let isUser = false;
 
-      function checkForUser(){
-        auth.onAuthStateChanged((user) => {
-          if(user){
-            isUser = true;
-            user_id = user.uid;
-            console.log("User is logged in:", user.uid);
-          }else{
-            isUser = false;
-          }
-        });
+  function checkForUser(){
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        isUser = true;
+        user_id = user.uid;
+        console.log("User is logged in:", user.uid);
+      } else {
+        isUser = false;
       }
-      checkForUser();
+    });
+  }
+  checkForUser();
 
-      const progressPopup = document.getElementById("progressPopup");
-      const successPopup = document.getElementById("successPopup");
-      const errorPopup = document.getElementById("errorPopup");
-      const progressMessage = document.getElementById("progressMessage");
-      const progressValue = document.getElementById("progressValue");
-      const errorMessage = document.getElementById("errorMessage");
+  const progressPopup = document.getElementById("progressPopup");
+  const successPopup = document.getElementById("successPopup");
+  const errorPopup = document.getElementById("errorPopup");
+  const progressMessage = document.getElementById("progressMessage");
+  const progressValue = document.getElementById("progressValue");
+  const errorMessage = document.getElementById("errorMessage");
 
-      const form = document.getElementById('add_product_form');
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        // All data
-        const product_image = form.product_image.files[0];
-        const product_description = form.product_description.value;
-        const product_price = form.product_price.value;
-        const product_discount = form.product_discount.value;
-        const product_category = form.product_category.value;
-        const product_link = form.product_link.value;
-        const product_currency = form.product_currency.value;
+  const form = document.getElementById('add_product_form');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
 
-        const dbRef = push(databaseRef(db, `products/`));
-        const newDbRef = databaseRef(db, `products/${dbRef.key}`);
-        
-        uploadImage(product_image);
+    // All data
+    const product_image = form.product_link.value; // Using link as the product image URL
+    const product_description = form.product_description.value;
+    const product_price = form.product_price.value;
+    const product_discount = form.product_discount.value;
+    const product_category = form.product_category.value;
+    const product_link = form.product_link.value;
+    const product_currency = form.product_currency.value;
 
-        // Function to show popup
-        function showPopup(popup) {
-          popup.classList.add('fade-in');
-          popup.style.display = 'block';
-        }
+    // Reference for a new product in the database
+    const dbRef = push(databaseRef(db, `products/`));
+    const newDbRef = databaseRef(db, `products/${dbRef.key}`);
+    
+    // Show progress popup
+    showPopup(progressPopup);
+    progressMessage.innerText = 'Adding product...';
+    progressValue.innerText = `0%`; // Set initial progress
 
-        // Function to hide popup
-        function hidePopup(popup) {
-          popup.classList.remove('fade-in');
-          popup.classList.add('fade-out');
-          setTimeout(() => {
-            popup.style.display = 'none';
-            popup.classList.remove('fade-out');
-          }, 500);
-        }
+    // Set product data in the database
+    set(newDbRef, {
+      action_btn_value: "Buy on Daraz",
+      image: product_image, // Directly set product image URL
+      description: product_description,
+      price: Number(product_price),
+      discount: Number(product_discount),
+      category: product_category,
+      link: product_link,
+      share: product_link,
+      type: "daraz",
+      currency: product_currency === "BDT" ? "৳" : product_currency
+    }).then(() => {
+      hidePopup(progressPopup);
+      showPopup(successPopup);
+      setTimeout(() => hidePopup(successPopup), 3000); // Auto-hide after 3 seconds
+    }).catch((error) => {
+      console.error('Failed to add product:', error);
+      hidePopup(progressPopup);
+      errorMessage.innerText = 'Failed to add product. Please try again.';
+      showPopup(errorPopup);
+      setTimeout(() => hidePopup(errorPopup), 3000);
+    });
+  });
 
-        // Function to upload the image
-        async function uploadImage(file) {
-          // Show progress popup
-          showPopup(progressPopup);
+  // Function to show popup
+  function showPopup(popup) {
+    popup.classList.add('fade-in');
+    popup.style.display = 'block';
+  }
 
-          // Create a storage reference in Firebase
-          const storageReference = storageRef(storage, `product_images/${new Date().toISOString()}`);
-
-          // Create an upload task
-          const uploadTask = uploadBytesResumable(storageReference, file);
-
-          // Monitor the upload progress
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              // Calculate upload progress percentage
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              console.log('Upload is ' + progress.toFixed(2) + '% done');
-
-              progressValue.innerText = `${progress.toFixed(2)}%`;
-
-              // You can also display the progress using a progress bar in the UI
-              if (progress === 100) {
-                progressMessage.innerText = 'Finalizing...';
-              }
-            },
-            (error) => {
-              // Handle any errors during upload
-              console.error('Upload failed:', error);
-              hidePopup(progressPopup);
-              errorMessage.innerText = 'Upload failed. Please try again.';
-              showPopup(errorPopup);
-              setTimeout(() => hidePopup(errorPopup), 3000);
-            },
-            () => {
-              // On successful upload, get the download URL
-              getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                console.log('File available at', downloadURL);
-                // Set the product image URL in the database
-                set(newDbRef, {
-                  action_btn_value: "Buy on Daraz",
-                  image: downloadURL,
-                  description: product_description,
-                  price: Number(product_price),
-                  discount: Number(product_discount),
-                  category: product_category,
-                  link: product_link,
-                  share: product_link,
-                  type: "daraz",
-                  currency: product_currency
-                }).then(() => {
-                  hidePopup(progressPopup);
-                  showPopup(successPopup);
-                  setTimeout(() => hidePopup(successPopup), 3000); // Auto-hide after 3 seconds
-                }).catch(() => {
-                  hidePopup(progressPopup);
-                  errorMessage.innerText = 'Failed to add product. Please try again.';
-                  showPopup(errorPopup);
-                  setTimeout(() => hidePopup(errorPopup), 3000);
-                });
-              });
-            }
-          );
-        }
-      });
-    </script>
+  // Function to hide popup
+  function hidePopup(popup) {
+    popup.classList.remove('fade-in');
+    popup.classList.add('fade-out');
+    setTimeout(() => {
+      popup.style.display = 'none';
+      popup.classList.remove('fade-out');
+    }, 500);
+  }
+</script>
 </body>
 </html>
