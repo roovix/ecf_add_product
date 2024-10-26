@@ -86,8 +86,8 @@
     <div class="container">
         <form id="add_product_form">
             <h2>Add new product</h2>
-            <label for="product_image">Product Image</label>
-            <input type="file" id="product_image" name="product_image" accept="image/*" required>
+            <label for="product_image">Product Image Link</label>
+            <input type="text" id="product_image" name="product_image" required>
 
             <label for="product_link">Product affiliate link</label>
             <input type="text" id="product_link" name="product_link" required>
@@ -240,7 +240,7 @@
     e.preventDefault();
 
     // All data
-    const product_image = form.product_link.value; // Using link as the product image URL
+    const product_image = form.product_image.value; // Using link as the product image URL
     const product_description = form.product_description.value;
     const product_price = form.product_price.value;
     const product_discount = form.product_discount.value;
