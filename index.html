@@ -84,6 +84,7 @@
     </div>
 
     <div class="container">
+        <p>Product count: <span id="product_count">0</span></p>
         <form id="add_product_form">
             <h2>Add new product</h2>
             <label for="product_image">Product Image Link</label>
@@ -281,6 +282,20 @@
       setTimeout(() => hidePopup(errorPopup), 3000);
     });
   });
+
+          // Product count
+      const productCountRef = databaseRef(db, `products`);
+      onValue(productCountRef, (snapshot)=>{
+          const product_count = snapshot.val();
+          let product_count_value = 0;
+          const product_count_p = document.getElementById("product_count");
+
+          for(const product_count_key in product_count){
+            product_count_value += 1;
+            product_count_p.textContent = product_count_value;
+          }
+          product_count_p.textContent.product_count_value;
+      });
 
   // Function to show popup
   function showPopup(popup) {
