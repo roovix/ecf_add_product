@@ -87,7 +87,7 @@
         <p>Product count: <span id="product_count">0</span></p>
         <form id="add_product_form">
             <h2>Add new product</h2>
-            <label for="product_image">Product Image Link</label>
+            <label for="product_image">Product Image link</label>
             <input type="text" id="product_image" name="product_image" required>
 
             <label for="product_link">Product affiliate link</label>
@@ -192,99 +192,99 @@
         </form>
 
         <!-- Open admin login page -->
-         <a href="admin_login.html">Open Admin Login Page</a>
+         <a href="admin_login">Open Admin Login Page</a>
     </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-  import {
-    getDatabase,
-    ref as databaseRef,
-    set,
-    push,
-    onValue
-  } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
-  import {
-    getAuth,
-    onAuthStateChanged,
-    GoogleAuthProvider,
-  } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-  let user_id = "";
-  let isUser = false;
-
-  function checkForUser(){
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        isUser = true;
-        user_id = user.uid;
-        console.log("User is logged in:", user.uid);
-      } else {
-        isUser = false;
-      }
-    });
-  }
-  checkForUser();
-
-  const progressPopup = document.getElementById("progressPopup");
-  const successPopup = document.getElementById("successPopup");
-  const errorPopup = document.getElementById("errorPopup");
-  const progressMessage = document.getElementById("progressMessage");
-  const progressValue = document.getElementById("progressValue");
-  const errorMessage = document.getElementById("errorMessage");
-
-  const form = document.getElementById('add_product_form');
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    // All data
-    const product_image = form.product_image.value; // Using link as the product image URL
-    const product_description = form.product_description.value;
-    const product_price = form.product_price.value;
-    const product_discount = form.product_discount.value;
-    const product_category = form.product_category.value;
-    const product_link = form.product_link.value;
-    const product_currency = form.product_currency.value;
-
-    // Reference for a new product in the database
-    const dbRef = push(databaseRef(db, `products/`));
-    const newDbRef = databaseRef(db, `products/${dbRef.key}`);
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
+      import {
+        getDatabase,
+        ref as databaseRef,
+        set,
+        push,
+        onValue
+      } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        GoogleAuthProvider,
+      } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
     
-    // Show progress popup
-    showPopup(progressPopup);
-    progressMessage.innerText = 'Adding product...';
-    progressValue.innerText = `0%`; // Set initial progress
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const auth = getAuth(app);
+      const provider = new GoogleAuthProvider();
+      let user_id = "";
+      let isUser = false;
+    
+      function checkForUser(){
+        auth.onAuthStateChanged((user) => {
+          if (user) {
+            isUser = true;
+            user_id = user.uid;
+            console.log("User is logged in:", user.uid);
+          } else {
+            isUser = false;
+          }
+        });
+      }
+      checkForUser();
+    
+      const progressPopup = document.getElementById("progressPopup");
+      const successPopup = document.getElementById("successPopup");
+      const errorPopup = document.getElementById("errorPopup");
+      const progressMessage = document.getElementById("progressMessage");
+      const progressValue = document.getElementById("progressValue");
+      const errorMessage = document.getElementById("errorMessage");
+    
+      const form = document.getElementById('add_product_form');
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+    
+        // All data
+        const product_image = form.product_image.value; // Using link as the product image URL
+        const product_description = form.product_description.value;
+        const product_price = form.product_price.value;
+        const product_discount = form.product_discount.value;
+        const product_category = form.product_category.value;
+        const product_link = form.product_link.value;
+        const product_currency = form.product_currency.value;
+    
+        // Reference for a new product in the database
+        const dbRef = push(databaseRef(db, `products/`));
+        const newDbRef = databaseRef(db, `products/${dbRef.key}`);
+        
+        // Show progress popup
+        showPopup(progressPopup);
+        progressMessage.innerText = 'Adding product...';
+        progressValue.innerText = `0%`; // Set initial progress
+    
+        // Set product data in the database
+        set(newDbRef, {
+          action_btn_value: "Buy on Daraz",
+          image: product_image, // Directly set product image URL
+          description: product_description,
+          price: Number(product_price),
+          discount: Number(product_discount),
+          category: product_category,
+          link: product_link,
+          share: product_link,
+          type: "daraz",
+          currency: product_currency === "BDT" ? "৳" : product_currency
+        }).then(() => {
+          hidePopup(progressPopup);
+          showPopup(successPopup);
+          setTimeout(() => hidePopup(successPopup), 3000); // Auto-hide after 3 seconds
+        }).catch((error) => {
+          console.error('Failed to add product:', error);
+          hidePopup(progressPopup);
+          errorMessage.innerText = 'Failed to add product. Please try again.';
+          showPopup(errorPopup);
+          setTimeout(() => hidePopup(errorPopup), 3000);
+        });
+      });
 
-    // Set product data in the database
-    set(newDbRef, {
-      action_btn_value: "Buy on Daraz",
-      image: product_image, // Directly set product image URL
-      description: product_description,
-      price: Number(product_price),
-      discount: Number(product_discount),
-      category: product_category,
-      link: product_link,
-      share: product_link,
-      type: "daraz",
-      currency: product_currency === "BDT" ? "৳" : product_currency
-    }).then(() => {
-      hidePopup(progressPopup);
-      showPopup(successPopup);
-      setTimeout(() => hidePopup(successPopup), 3000); // Auto-hide after 3 seconds
-    }).catch((error) => {
-      console.error('Failed to add product:', error);
-      hidePopup(progressPopup);
-      errorMessage.innerText = 'Failed to add product. Please try again.';
-      showPopup(errorPopup);
-      setTimeout(() => hidePopup(errorPopup), 3000);
-    });
-  });
-
-          // Product count
+      // Product count
       const productCountRef = databaseRef(db, `products`);
       onValue(productCountRef, (snapshot)=>{
           const product_count = snapshot.val();
@@ -297,22 +297,22 @@
           }
           product_count_p.textContent.product_count_value;
       });
-
-  // Function to show popup
-  function showPopup(popup) {
-    popup.classList.add('fade-in');
-    popup.style.display = 'block';
-  }
-
-  // Function to hide popup
-  function hidePopup(popup) {
-    popup.classList.remove('fade-in');
-    popup.classList.add('fade-out');
-    setTimeout(() => {
-      popup.style.display = 'none';
-      popup.classList.remove('fade-out');
-    }, 500);
-  }
-</script>
+    
+      // Function to show popup
+      function showPopup(popup) {
+        popup.classList.add('fade-in');
+        popup.style.display = 'block';
+      }
+    
+      // Function to hide popup
+      function hidePopup(popup) {
+        popup.classList.remove('fade-in');
+        popup.classList.add('fade-out');
+        setTimeout(() => {
+          popup.style.display = 'none';
+          popup.classList.remove('fade-out');
+        }, 500);
+      }
+    </script>    
 </body>
 </html>
