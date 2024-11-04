@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="config.js"></script>
+    <title>Delete product</title>
+</head>
+<body>
+    <h1>Delete Product</h1>
+    <form id="deleteProductForm">
+        <label for="productId">Product ID:</label>
+        <input type="text" id="productId" required>
+        <button type="submit">Delete Product</button>
+    </form>
+    
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
+      import {
+        getDatabase,
+        ref,
+        remove,
+      } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
+
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const auth = getAuth(app);
+
+      document.getElementById('deleteProductForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const productId = document.getElementById('productId').value;
+
+        // Reference to the product in the database
+        const productRef = ref(db, `products/${productId}`);
+
+        try {
+          // Attempt to delete the product
+          await remove(productRef);
+          alert(`Product with ID ${productId} has been deleted.`);
+        } catch (error) {
+          console.error("Error deleting product:", error);
+          alert("Failed to delete product. Please try again.");
+        }
+      });
+    </script>
+</body>
+</html>
