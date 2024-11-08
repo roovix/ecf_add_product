@@ -87,7 +87,7 @@
         <p>Product count: <span id="product_count">0</span></p>
         <form id="add_product_form">
             <h2>Add new product</h2>
-            <label for="product_image">Product Image link</label>
+            <label for="product_image">Drive image id</label>
             <input type="text" id="product_image" name="product_image" required>
 
             <label for="product_link">Product affiliate link</label>
@@ -259,11 +259,13 @@
         showPopup(progressPopup);
         progressMessage.innerText = 'Adding product...';
         progressValue.innerText = `0%`; // Set initial progress
+
+        const google_drive_image = `https://drive.google.com/thumbnail?id=${product_image}`;
     
         // Set product data in the database
         set(newDbRef, {
           action_btn_value: "Buy on Daraz",
-          image: product_image, // Directly set product image URL
+          image: google_drive_image, // Directly set product image URL
           description: product_description,
           price: Number(product_price),
           discount: Number(product_discount),
