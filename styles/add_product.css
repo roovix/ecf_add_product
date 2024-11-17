@@ -90,6 +90,17 @@ body {
     font-size: 1rem;
 }
 
+#actions_list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-left: 40px;
+}
+#actions_list a{
+    text-decoration: none;
+    color: #000;
+}
+
 @media screen and (max-width: 800px) {
     body {
         padding: 10px;
