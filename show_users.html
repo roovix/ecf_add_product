@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Data</title>
+    <script src="config.js"></script>
+    <style>
+        /* Dark Mode Design */
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .user-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+            justify-content: center;
+        }
+        .user-item {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            width: 300px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+        }
+        .profile img {
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+        }
+        .profile p {
+            margin: 5px 0;
+        }
+        .details h3 {
+            margin-top: 15px;
+            color: #ffc107;
+        }
+        .details p {
+            margin: 5px 0;
+        }
+        #searchForm {
+            display: flex;
+            justify-content: center;
+            margin: 20px;
+        }
+        #searchForm input {
+            padding: 10px;
+            width: 250px;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+        #searchForm button {
+            padding: 10px;
+            background-color: #ffc107;
+            color: #121212;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app.js"></script>
+    <!-- Firebase Realtime Database -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.20.0/firebase-database.js"></script>
+</head>
+<body>
+    <h1 style="text-align: center; margin: 20px;">User Data</h1>
+
+    <!-- Search Form to input UID -->
+    <div id="searchForm">
+        <input type="text" id="uidInput" placeholder="Enter User UID" />
+        <button id="uid_btn">Search</button>
+    </div>
+
+    <ul class="user-list" id="userList"></ul>
+
+    <script type="module">
+        // Import the required Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-database.js";
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Function to fetch user data by UID
+        function fetchUserData() {
+            const uid = document.getElementById("uidInput").value;
+            if (!uid) {
+                alert("Please enter a UID.");
+                return;
+            }
+
+            // Reference to the specific user by UID in Firebase
+            const userRef = ref(database, `users/${uid}`);
+
+            // Fetch the user data
+            get(userRef)
+                .then((snapshot) => {
+                    const userList = document.getElementById("userList");
+                    userList.innerHTML = ""; // Clear any previous data
+
+                    if (snapshot.exists()) {
+                        const user = snapshot.val();
+                        const userItem = document.createElement("li");
+                        userItem.className = "user-item";
+                        userItem.innerHTML = `
+                            <div class="profile">
+                                <img src="${user.profile_picture || 'default-profile.png'}" alt="${user.name || 'Unknown'}" />
+                                <p><strong>${user.name || 'N/A'}</strong></p>
+                                <p class="uid">UID: ${user.uid || 'N/A'}</p>
+                            </div>
+                            <div class="details">
+                                <h3>Details</h3>
+                                <p><strong>Email:</strong> ${user.email || 'N/A'}</p>
+                                <p><strong>Phone:</strong> ${user.phone || 'N/A'}</p>
+                                <p><strong>Link clicks:</strong> ${user.total_link_click || 0}</p>
+                                <p><strong>Investment:</strong> ${user.investment || 0}</p>
+                                <p><strong>Balance:</strong> ${user.balance || 0}</p>
+                            </div>
+                        `;
+                        userList.appendChild(userItem);
+                    } else {
+                        alert("No data found for this UID.");
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error fetching user data: ", error);
+                    alert("Error fetching data: " + error.message);
+                });
+        }
+
+        document.getElementById("uid_btn").addEventListener("click", ()=>{
+            fetchUserData();
+        });
+    </script>
+</body>
+</html>
