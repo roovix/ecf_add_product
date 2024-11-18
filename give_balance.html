@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Give user balance</title>
+    <script src="config.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+
+        :root {
+            --color-background: #fff;
+            --color-primary: #F36944;
+            --color-base: #FEC92B;
+            --color-sky: #74C0FC;
+            --color-green-gray: #63E6BE;
+            --color-pink-gray: #E599F7;
+            --text-black-color: #000;
+            --text-white-color: #fff;
+            --text-gray-color: rgb(59, 59, 59);
+            --logo-size: 50px;
+            --name-size: 20px;
+            --navber-height: 60px;
+            --mneu-item-font-size: 15px;
+            --left-right-padding-size: 10vw;
+            --primary-border-radius: 10px;
+            --background-base-color: #74c1fc15;
+        }
+
+        *{
+            padding: 0%;
+            margin: 0%;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 20%;
+            background-color: #0D1117;
+            color: #eee;
+        }
+
+        #add_balance_to_user {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 15%;
+        }
+        #add_balance_to_user label {
+            margin-top: 10px;
+        }
+        #add_balance_to_user input {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid transparent;
+            background-color: #31363d88;
+            color: #fff;
+        }
+        #add_balance_to_user input:focus {
+            outline: none;
+        }
+        #add_balance_to_user button {
+            margin-top: 30px;
+            padding: 8px;
+            border-radius: 5px;
+            outline: none;
+            background-color: rgb(0, 182, 0);
+            color: #fff;
+            border: none;
+            transition: 0.5s ease;
+        } 
+        #add_balance_to_user button:hover {
+            background-color: #31363d88;
+        }
+    </style>
+</head>
+<body>
+    <form id="add_balance_to_user">
+        <label for="user_id">User ID:</label>
+        <input type="text" id="user_id" name="user_id" required>
+        <label for="balance_amount">Balance Amount:</label>
+        <input type="number" id="balance_amount" name="balance_amount" required>
+        
+        <button type="submit">Add Balance</button>
+    </form>
+    
+    <script type="module">
+        // Import the required Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-app.js";
+        import { getDatabase, ref, get, onValue, update, push } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-database.js";
+        import { getAuth, onAuthStateChanged, getIdTokenResult } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-auth.js";
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);  // Initialize Firebase Auth
+
+        // Add a new user balance
+        document.getElementById("add_balance_to_user").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const userId = document.getElementById("user_id").value;
+            const balanceAmount = parseFloat(document.getElementById("balance_amount").value);
+            const userWalletRef = push(ref(database, `/wallet${userId}/analysis_balance`));
+
+            auth.onAuthStateChanged((current_user)=>{
+                if(current_user){
+                    const giveBalance = {
+                        timestamp: Date.now(),
+                        value: balanceAmount,
+                        currency: "৳"
+                    }
+                    update(userWalletRef, giveBalance).then(()=>{
+                        alert("Balance added successfully!");
+                    }).catch((err)=>{
+                        console.error(err);
+                        alert("Failed to add balance!");
+                    });
+                }else{
+                    alert("User admin not found! Try again after login?");
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
