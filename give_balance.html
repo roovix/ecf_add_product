@@ -93,37 +93,47 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-app.js";
         import { getDatabase, ref, get, onValue, update, push } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-database.js";
         import { getAuth, onAuthStateChanged, getIdTokenResult } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-auth.js";
-
+    
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
         const auth = getAuth(app);  // Initialize Firebase Auth
-
+    
         // Add a new user balance
         document.getElementById("add_balance_to_user").addEventListener("submit", async (event) => {
             event.preventDefault();
             const userId = document.getElementById("user_id").value;
             const balanceAmount = parseFloat(document.getElementById("balance_amount").value);
-            const userWalletRef = push(ref(database, `/wallet${userId}/analysis_balance`));
-
-            auth.onAuthStateChanged((current_user)=>{
-                if(current_user){
-                    const giveBalance = {
-                        timestamp: Date.now(),
-                        value: balanceAmount,
-                        currency: "৳"
-                    }
-                    update(userWalletRef, giveBalance).then(()=>{
-                        alert("Balance added successfully!");
-                    }).catch((err)=>{
-                        console.error(err);
-                        alert("Failed to add balance!");
+            const userWalletRef = push(ref(database, `/wallet/${userId}/analysis_balance`));
+    
+            auth.onAuthStateChanged((current_user) => {
+                if (current_user) {
+                    // Get token result to check for admin claim
+                    getIdTokenResult(current_user).then((idTokenResult) => {
+                        if (idTokenResult.claims.admin) {
+                            const giveBalance = {
+                                timestamp: Date.now(),
+                                value: balanceAmount,
+                                currency: "৳"
+                            }
+                            // Proceed with the update
+                            update(userWalletRef, giveBalance).then(() => {
+                                alert("Balance added successfully!");
+                            }).catch((err) => {
+                                console.error(err);
+                                alert("Failed to add balance!");
+                            });
+                        } else {
+                            alert("You are not authorized to perform this action.");
+                        }
+                    }).catch((error) => {
+                        console.error(error);
+                        alert("Error checking admin status.");
                     });
-                }else{
-                    alert("User admin not found! Try again after login?");
+                } else {
+                    alert("User not authenticated. Please login.");
                 }
             });
         });
-
-    </script>
+    </script>    
 </body>
 </html>
