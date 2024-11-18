@@ -103,7 +103,7 @@
             event.preventDefault();
             const userId = document.getElementById("user_id").value;
             const balanceAmount = parseFloat(document.getElementById("balance_amount").value);
-            const userWalletRef = push(ref(database, `/wallet/${userId}/analysis_balance`));
+            const userWalletRef = push(ref(database, `wallet/${userId}/analysis_balance`));
     
             auth.onAuthStateChanged((current_user) => {
                 if (current_user) {
