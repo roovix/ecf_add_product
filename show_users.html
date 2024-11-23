@@ -71,6 +71,8 @@
     <script type="module" src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app.js"></script>
     <!-- Firebase Realtime Database -->
     <script type="module" src="https://www.gstatic.com/firebasejs/9.20.0/firebase-database.js"></script>
+    <!-- Firebase Authentication -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth.js"></script>
 </head>
 <body>
     <h1 style="text-align: center; margin: 20px;">User Data</h1>
@@ -87,23 +89,67 @@
         // Import the required Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-app.js";
         import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-database.js";
+        import { getAuth, onAuthStateChanged, getIdTokenResult } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-auth.js";
 
         // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyA9_Xtlduo-sI6cCwwpnRDBTEA-13i0aQI",
+            authDomain: "ec-affiliate.firebaseapp.com",
+            projectId: "ec-affiliate",
+            storageBucket: "ec-affiliate.appspot.com",
+            messagingSenderId: "166080127246",
+            appId: "1:166080127246:web:a21b27512218783db3775f",
+            measurementId: "G-BEW9MPV4SC"
+        };
+        
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
+        const auth = getAuth(app);  // Initialize Firebase Auth
+
+        // Function to fetch all users
+        function fetchAllUsers() {
+            const usersRef = ref(database, 'users/');
+            get(usersRef)
+                .then((snapshot) => {
+                    const userList = document.getElementById("userList");
+                    userList.innerHTML = ""; // Clear any previous data
+
+                    if (snapshot.exists()) {
+                        const users = snapshot.val();
+                        for (let uid in users) {
+                            const user = users[uid];
+                            const userItem = document.createElement("li");
+                            userItem.className = "user-item";
+                            userItem.innerHTML = `
+                                <div class="profile">
+                                    <img src="${user.profile_picture}" alt="${user.name || 'Unknown'}" />
+                                    <p><strong>${user.name || 'N/A'}</strong></p>
+                                    <p class="uid">UID: ${uid || 'N/A'}</p>
+                                </div>
+                                <div class="details">
+                                    <h3>Details</h3>
+                                    <p><strong>Email:</strong> ${user.email || 'N/A'}</p>
+                                    <p><strong>Phone:</strong> ${user.phone_number || 'N/A'}</p>
+                                    <p><strong>Link clicks:</strong> ${user.total_link_click || 0}</p>
+                                    <p><strong>Investment:</strong> ${user.investment || 0}</p>
+                                    <p><strong>Balance:</strong> ${user.balance || 0}</p>
+                                    <p><strong>Type:</strong> ${user.type || "Null"}</p>
+                                </div>
+                            `;
+                            userList.appendChild(userItem);
+                        }
+                    } else {
+                        alert("No users found.");
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error fetching user data: ", error);
+                });
+        }
 
         // Function to fetch user data by UID
-        function fetchUserData() {
-            const uid = document.getElementById("uidInput").value;
-            if (!uid) {
-                alert("Please enter a UID.");
-                return;
-            }
-
-            // Reference to the specific user by UID in Firebase
+        function fetchUserData(uid) {
             const userRef = ref(database, `users/${uid}`);
-
-            // Fetch the user data
             get(userRef)
                 .then((snapshot) => {
                     const userList = document.getElementById("userList");
@@ -115,7 +161,7 @@
                         userItem.className = "user-item";
                         userItem.innerHTML = `
                             <div class="profile">
-                                <img src="${user.profile_picture || 'default-profile.png'}" alt="${user.name || 'Unknown'}" />
+                                <img src="${user.profile_picture}" alt="${user.name || 'Unknown'}" />
                                 <p><strong>${user.name || 'N/A'}</strong></p>
                                 <p class="uid">UID: ${user.uid || 'N/A'}</p>
                             </div>
@@ -126,6 +172,7 @@
                                 <p><strong>Link clicks:</strong> ${user.total_link_click || 0}</p>
                                 <p><strong>Investment:</strong> ${user.investment || 0}</p>
                                 <p><strong>Balance:</strong> ${user.balance || 0}</p>
+                                <p><strong>Type:</strong> ${user.type || "Null"}</p>
                             </div>
                         `;
                         userList.appendChild(userItem);
@@ -139,8 +186,41 @@
                 });
         }
 
-        document.getElementById("uid_btn").addEventListener("click", ()=>{
-            fetchUserData();
+        // Fetch all users initially
+        fetchAllUsers();
+
+        document.getElementById("uid_btn").addEventListener("click", () => {
+            const uid = document.getElementById("uidInput").value.trim(); // Trim extra spaces
+            if (uid) {
+                // Ensure user authentication before fetching data
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        getIdTokenResult(user)
+                            .then((idTokenResult) => {
+                                if (idTokenResult.claims.admin) {
+                                    fetchUserData(uid); // Fetch specific user by UID
+                                } else {
+                                    alert("You don't have admin privileges to view this data.");
+                                }
+                            })
+                            .catch((error) => {
+                                console.error("Error fetching token result:", error);
+                            });
+                    } else {
+                        alert("Please log in as an admin to view data.");
+                    }
+                });
+            } else {
+                // Reload all users if UID input is empty
+                fetchAllUsers();
+            }
+        });
+
+        // Optional: Detect input field clearing (Enter or keyup event)
+        document.getElementById("uidInput").addEventListener("keyup", (event) => {
+            if (event.target.value.trim() === "") {
+                fetchAllUsers(); // Show all users when input is cleared
+            }
         });
     </script>
 </body>
