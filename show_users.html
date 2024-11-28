@@ -133,7 +133,12 @@
                                     <p><strong>Link clicks:</strong> ${user.total_link_click || 0}</p>
                                     <p><strong>Investment:</strong> ${user.investment || 0}</p>
                                     <p><strong>Balance:</strong> ${user.balance || 0}</p>
+                                    <p><strong>Completed Orders:</strong> ${user.orders || 0}</p>
                                     <p><strong>Type:</strong> ${user.type || "Null"}</p>
+                                    <p><strong>Gender:</strong> ${user.gender || "Null"}</p>
+                                    <p><strong>Location:</strong> ${user.location || "Null"}</p>
+                                    <p><strong>Relationship Status:</strong> ${user.relationship_status || "Null"}</p>
+                                    <p><strong>Date of Birth:</strong> ${user.birth_date || "Null"}</p>
                                 </div>
                             `;
                             userList.appendChild(userItem);
@@ -166,13 +171,18 @@
                                 <p class="uid">UID: ${user.uid || 'N/A'}</p>
                             </div>
                             <div class="details">
-                                <h3>Details</h3>
-                                <p><strong>Email:</strong> ${user.email || 'N/A'}</p>
-                                <p><strong>Phone:</strong> ${user.phone_number || 'N/A'}</p>
-                                <p><strong>Link clicks:</strong> ${user.total_link_click || 0}</p>
-                                <p><strong>Investment:</strong> ${user.investment || 0}</p>
-                                <p><strong>Balance:</strong> ${user.balance || 0}</p>
-                                <p><strong>Type:</strong> ${user.type || "Null"}</p>
+                                    <h3>Details</h3>
+                                    <p><strong>Email:</strong> ${user.email || 'N/A'}</p>
+                                    <p><strong>Phone:</strong> ${user.phone_number || 'N/A'}</p>
+                                    <p><strong>Link clicks:</strong> ${user.total_link_click || 0}</p>
+                                    <p><strong>Investment:</strong> ${user.investment || 0}</p>
+                                    <p><strong>Balance:</strong> ${user.balance || 0}</p>
+                                    <p><strong>Completed Orders:</strong> ${user.orders || 0}</p>
+                                    <p><strong>Type:</strong> ${user.type || "Null"}</p>
+                                    <p><strong>Gender:</strong> ${user.gender || "Null"}</p>
+                                    <p><strong>Location:</strong> ${user.location || "Null"}</p>
+                                    <p><strong>Relationship Status:</strong> ${user.relationship_status || "Null"}</p>
+                                    <p><strong>Date of Birth:</strong> ${user.birth_date || "Null"}</p>
                             </div>
                         `;
                         userList.appendChild(userItem);
@@ -215,7 +225,7 @@
                 fetchAllUsers();
             }
         });
-
+ 
         // Optional: Detect input field clearing (Enter or keyup event)
         document.getElementById("uidInput").addEventListener("keyup", (event) => {
             if (event.target.value.trim() === "") {
