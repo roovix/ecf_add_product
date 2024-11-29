@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roovix Help Requests</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Help Requests</h1>
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <!-- Add fixed height and overflow styles -->
+            <div class="max-h-[400px] overflow-y-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-2 px-4 text-left text-gray-600 font-medium">Request ID</th>
+                            <th class="py-2 px-4 text-left text-gray-600 font-medium">Name</th>
+                            <th class="py-2 px-4 text-left text-gray-600 font-medium">Email</th>
+                            <th class="py-2 px-4 text-left text-gray-600 font-medium">Subject</th>
+                            <th class="py-2 px-4 text-left text-gray-600 font-medium">Description</th>
+                            <th class="py-2 px-4 text-left text-gray-600 font-medium">Status</th>
+                            <th class="py-2 px-4 text-left text-gray-600 font-medium">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="help-request-list" class="bg-white divide-y divide-gray-200">
+                        <!-- Help requests will be dynamically injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-app.js";
+        import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-database.js";
+        import { getAuth, onAuthStateChanged, getIdTokenResult } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA9_Xtlduo-sI6cCwwpnRDBTEA-13i0aQI",
+            authDomain: "ec-affiliate.firebaseapp.com",
+            projectId: "ec-affiliate",
+            storageBucket: "ec-affiliate.appspot.com",
+            messagingSenderId: "166080127246",
+            appId: "1:166080127246:web:a21b27512218783db3775f",
+            measurementId: "G-BEW9MPV4SC"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                getIdTokenResult(user)
+                    .then((idTokenResult) => {
+                        if (idTokenResult.claims.admin) {
+                            fetchHelpRequests();
+                        } else {
+                            alert("You don't have admin privileges to view this data.");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching token result:", error);
+                    });
+            } else {
+                alert("Please log in as an admin to view data.");
+            }
+        });
+
+        function fetchHelpRequests() {
+            const helpReqRef = ref(database, 'help_request');
+            onValue(helpReqRef, (snapshot) => {
+                const helpRequests = snapshot.val();
+                const helpRequestList = document.getElementById("help-request-list");
+
+                helpRequestList.innerHTML = "";  // Clear existing content
+                for (const id in helpRequests) {
+                    const helpRequest = helpRequests[id];
+                    const status = helpRequest.status || 'Pending';
+
+                    // Skip solved requests
+                    if (status.toLowerCase() === 'solved') continue;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="py-2 px-4">${id}</td>
+                        <td class="py-2 px-4">${helpRequest.name}</td>
+                        <td class="py-2 px-4">${helpRequest.email}</td>
+                        <td class="py-2 px-4">${helpRequest.subject}</td>
+                        <td class="py-2 px-4">${helpRequest.message}</td>
+                        <td class="py-2 px-4">${status}</td>
+                        <td class="py-2 px-4">
+                            <button onclick="toggleStatus('${id}')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded">
+                                Mark as Solved
+                            </button>
+                        </td>
+                    `;
+                    helpRequestList.appendChild(row);
+                }
+            });
+        }
+
+        window.toggleStatus = (id) => {
+            const newStatus = 'solved';
+            update(ref(database, `help_request/${id}`), { status: newStatus })
+                .then(() => {
+                    alert(`Status updated to ${newStatus}`);
+                    fetchHelpRequests();  // Refresh the list to reflect changes
+                })
+                .catch((error) => {
+                    console.error("Error updating status:", error);
+                });
+        }
+    </script>
+</body>
+</html>
