@@ -84,6 +84,13 @@
 
         <label for="user_id">User ID:</label>
         <input type="text" id="user_id" name="user_id" required>
+
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+
+        <label for="message">Message:</label>
+        <input type="text" id="message" name="message" required>
+
         <label for="balance_amount">Balance Amount:</label>
         <input type="number" id="balance_amount" name="balance_amount" required>
         
@@ -104,6 +111,8 @@
             event.preventDefault();
 
             const userId = document.getElementById("user_id").value;
+            const title = document.getElementById("title").value;
+            const message = document.getElementById("message").value;
             const balanceAmount = parseFloat(document.getElementById("balance_amount").value);
             const userWalletRef = push(ref(database, `wallet/${userId}/analysis_balance`));
             const userBalanceRef = ref(database, `users/${userId}`);
@@ -117,7 +126,10 @@
                             const giveBalance = {
                                 timestamp: Date.now(),
                                 value: balanceAmount,
-                                currency: "৳"
+                                currency: "৳",
+                                title: title,
+                                message: message,
+                                transaction_type: "Add",
                             };
 
                             // Add transaction record to the wallet
