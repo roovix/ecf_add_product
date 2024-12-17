@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - Withdrawal Requests</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    table th,
+    table td {
+      padding: 12px 15px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    table th {
+      background-color: #007bff;
+      color: #ffffff;
+      text-transform: uppercase;
+    }
+
+    table tbody tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    table tbody tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    .action-btn {
+      padding: 6px 12px;
+      margin: 0 5px;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .btn-confirm {
+      background-color: #28a745;
+    }
+
+    .btn-cancel {
+      background-color: #dc3545;
+    }
+
+    .btn-confirm:hover {
+      background-color: #218838;
+    }
+
+    .btn-cancel:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Withdrawal Requests</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Request ID</th>
+        <th>Name</th>
+        <th>Amount</th>
+        <th>Bkash</th>
+        <th>Timestamp</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="request-table-body">
+      <!-- Data will be inserted here dynamically -->
+    </tbody>
+  </table>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-app.js";
+    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-database.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/9.20.0/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA9_Xtlduo-sI6cCwwpnRDBTEA-13i0aQI",
+        authDomain: "ec-affiliate.firebaseapp.com",
+        projectId: "ec-affiliate",
+        storageBucket: "ec-affiliate.appspot.com",
+        messagingSenderId: "166080127246",
+        appId: "1:166080127246:web:a21b27512218783db3775f",
+        measurementId: "G-BEW9MPV4SC"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth();
+    const tableBody = document.getElementById("request-table-body");
+
+    // Check if the user is an admin before fetching data
+    function checkAdminStatus() {
+      const user = auth.currentUser;
+      if (user) {
+        user.getIdTokenResult().then((idTokenResult) => {
+          // Check if the user is an admin
+          if (idTokenResult.claims.admin) {
+            fetchWithdrawalRequests();
+          } else {
+            alert("You do not have admin privileges.");
+          }
+        }).catch((error) => {
+          console.error('Error fetching ID token:', error);
+        });
+      } else {
+        alert("You are not logged in.");
+      }
+    }
+
+    // Fetch and render requests
+    function fetchWithdrawalRequests() {
+      const withdrawRequestRef = ref(db, "withdraw_request");
+
+      get(withdrawRequestRef).then((snapshot) => {
+        if (snapshot.exists()) {
+          const requests = snapshot.val();
+          tableBody.innerHTML = ""; // Clear table before re-rendering
+
+          // Loop through user IDs
+          Object.keys(requests).forEach((userId) => {
+            const userRequests = requests[userId];
+            Object.keys(userRequests).forEach((requestId) => {
+              const request = userRequests[requestId];
+
+              const row = `
+                <tr>
+                  <td>${userId}</td>
+                  <td>${requestId}</td>
+                  <td>${request.name}</td>
+                  <td>${request.amount}</td>
+                  <td>${request.bkash}</td>
+                  <td>${request.timestamp}</td>
+                  <td>${request.status}</td>
+                  <td>
+                    <button class="action-btn btn-confirm" onclick="updateStatus('${userId}', '${requestId}', 'confirmed')">Confirm</button>
+                    <button class="action-btn btn-cancel" onclick="updateStatus('${userId}', '${requestId}', 'cancelled')">Cancel</button>
+                  </td>
+                </tr>
+              `;
+              tableBody.innerHTML += row;
+            });
+          });
+        } else {
+          tableBody.innerHTML = `<tr><td colspan="8">No withdrawal requests found</td></tr>`;
+        }
+      });
+    }
+
+    // Update request status
+    window.updateStatus = (userId, requestId, newStatus) => {
+      const statusRef = ref(db, `withdraw_request/${userId}/${requestId}`);
+
+      update(statusRef, { status: newStatus })
+        .then(() => {
+          alert(`Request updated to ${newStatus}`);
+          fetchWithdrawalRequests();
+        })
+        .catch((error) => {
+          console.error("Error updating status:", error);
+          alert("Failed to update status. Try again.");
+        });
+    };
+
+    // Fetch requests on page load and check admin status
+    checkAdminStatus();
+  </script>
+</body>
+</html>
