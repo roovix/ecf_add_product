@@ -113,8 +113,8 @@
 
     // Check if the user is an admin before fetching data
     function checkAdminStatus() {
-      const user = auth.currentUser;
-      if (user) {
+      auth.onAuthStateChanged((user)=>{
+        if (user) {
         user.getIdTokenResult().then((idTokenResult) => {
           // Check if the user is an admin
           if (idTokenResult.claims.admin) {
@@ -128,6 +128,7 @@
       } else {
         alert("You are not logged in.");
       }
+      })    
     }
 
     // Fetch and render requests
